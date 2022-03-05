@@ -1,5 +1,7 @@
 import pygame
 from sys import exit
+import os.path
+from os import path
 
 #intialize the pygame
 pygame.init()
@@ -20,12 +22,17 @@ background = pygame.image.load("workoutProject/workoutProjectGit/background.jpg"
 daily_plan_button = pygame.Rect(650,500,500,100)
 options_button = pygame.Rect(650,650,500,100)
 back_button = pygame.Rect(20,930,200,50)
-routin_button = pygame.Rect(1250,400,500,100)
+routine_button = pygame.Rect(1250,400,500,100)
 workout_sch_button = pygame.Rect(1250,250,500,100)
 workout_file_path_button = pygame.Rect(350,265,700,100)
-routin_file_path_button = pygame.Rect(350,450,700,100)
+routine_file_path_button = pygame.Rect(350,450,700,100)
+
 #text
 font = pygame.font.Font(None, 50)
+workout_file_path = "c:/python/workoutplan.txt"
+dailyplan_file_path = "c:/python/dailyplan.txt"
+
+#screen drawing func
 def draw_text(text,font,color,surface,x,y):
     '''
     fuction for immidatley drawing a text on secfuce
@@ -34,32 +41,6 @@ def draw_text(text,font,color,surface,x,y):
     text_rect = text_obj.get_rect()
     text_rect.topleft = (x,y)
     surface.blit(text_obj,text_rect)
-
-workout_file_path = "c:/python/workoutplan.txt"
-routin_file_path = "c:/python/workoutplan.txt"
-def change_text(text):
-    while True:
-        #exit on screen close
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    click = True
-
-        #mouse input
-        mx, my = pygame.mouse.get_pos()
-        if options_button.collidepoint((mx,my)):
-            if click:
-                options_menu()
-        if daily_plan_button.collidepoint((mx,my)):
-            if click:
-                daily_menu()
-                
-        click = False
-        pygame.display.update()
-        clock.tick(60)
 
 #main game loop
 def main_loop():
@@ -109,7 +90,9 @@ def options_menu():
     '''
     running = True
     global workout_file_path
+    global dailyplan_file_path
     click_on_text = False
+    text = ""
     while running:
         click = False
         #exit on screen close
@@ -119,30 +102,48 @@ def options_menu():
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE and not click_on_text:
+                if event.key == pygame.K_ESCAPE and not click_on_text and path.exists(dailyplan_file_path) and path.exists(workout_file_path):
                     running = False
-                elif event.key == pygame.K_KP_ENTER or event.key == pygame.K_ESCAPE:
-                    click_on_text = False
-                elif click_on_text and len(workout_file_path) < 30:
-                    if event.unicode.isalpha() or event.unicode == "/" or event.unicode == ".":
-                        workout_file_path += event.unicode
-                    elif event.key == pygame.K_BACKSPACE:
-                        workout_file_path = workout_file_path[:-1]
-                elif event.key == pygame.K_BACKSPACE:
-                        workout_file_path = workout_file_path[:-1]
+                elif event.key == pygame.K_ESCAPE and not click_on_text:
+                    print("one or more files don't exist")
+                if click_on_text:
+                    #changing workout file path 
+                    if text == "workoutplan":
+                        if event.key == pygame.K_BACKSPACE:
+                            workout_file_path = workout_file_path[:-1]
+                        elif event.unicode.isalpha():
+                            workout_file_path += event.unicode
+                        elif event.key == pygame.K_ESCAPE:
+                            click_on_text = False
+                            
+                    #changing routine file path 
+                    elif text == "routine":
+                        if event.key == pygame.K_BACKSPACE:
+                            dailyplan_file_path = dailyplan_file_path[:-1]
+                        elif event.unicode.isalpha():
+                            dailyplan_file_path += event.unicode
+                        elif event.key == pygame.K_ESCAPE:
+                            click_on_text = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     click = True
                     click_on_text = False
-                    
+
         #mouse input
         mx, my = pygame.mouse.get_pos()
         if back_button.collidepoint((mx,my)):
-            if click:
+            if click and path.exists(dailyplan_file_path) and path.exists(workout_file_path):
                 running = False #leave menu
+            elif click:
+                print("one or more files don't exist")
         if workout_file_path_button.collidepoint((mx,my)):
             if click:
                 click_on_text = not click_on_text
+                text = "workoutplan"
+        if routine_file_path_button.collidepoint((mx,my)):
+            if click:
+                click_on_text = not click_on_text
+                text = "routine"
         
         #add images
         screen.blit(background,(0,0))
@@ -154,9 +155,9 @@ def options_menu():
         draw_text("Workout File Path: ",font,(0,0,0),screen,20,300)
         draw_text(workout_file_path,font,(255,255,255),screen,370,300)
         #routine file field
-        pygame.draw.rect(screen,(0,0,0),routin_file_path_button)
-        draw_text("Routin File Path: ",font,(0,0,0),screen,20,475)
-        draw_text(routin_file_path,font,(255,255,255),screen,370,475)
+        pygame.draw.rect(screen,(0,0,0),routine_file_path_button)
+        draw_text("Routine File Path: ",font,(0,0,0),screen,20,475)
+        draw_text(dailyplan_file_path,font,(255,255,255),screen,370,475)
 
         #loop necesities
         pygame.display.update()
@@ -195,7 +196,7 @@ def daily_menu():
         draw_text("Daily Menu", font,(0,0,0),screen,800,40)
         pygame.draw.rect(screen,(0,0,0),back_button)
         draw_text("Back",font,(255,255,255),screen,77,937)
-        pygame.draw.rect(screen,(0,0,0),routin_button)
+        pygame.draw.rect(screen,(0,0,0),routine_button)
         draw_text("Daily Routine",font,(255,255,255),screen,1385,425)
         pygame.draw.rect(screen,(0,0,0),workout_sch_button)
         draw_text("Daily Workout",font,(255,255,255),screen,1385,280)
